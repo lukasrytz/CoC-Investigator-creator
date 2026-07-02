@@ -4,6 +4,16 @@ A browser-based investigator (character) creator for **Call of Cthulhu, 7th Edit
 Purely client-side — no backend, no accounts; your in-progress investigator autosaves to the browser's
 localStorage.
 
+## Use it
+
+**Nothing to install** — open the app in your browser:
+
+**<https://lukasrytz.github.io/CoC-Investigator-creator/>**
+
+Every push to the default branch is built and deployed there automatically by GitHub Actions
+(`.github/workflows/deploy.yml`). The `npm` commands below are only needed if you want to develop
+or build the app yourself.
+
 ## Features
 
 - **Guided 8-step wizard**: basics → characteristics → occupation → occupation skills → personal
