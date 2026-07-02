@@ -297,6 +297,29 @@ describe('allocation validation', () => {
     const c = chars({ DEX: 60 })
     expect(skillTotal({ skillId: 'dodge', occupationPoints: 10, personalPoints: 5 }, c)).toBe(45)
   })
+
+  it('supports custom skills', () => {
+    const inv = journalist()
+    inv.customSkills = [{ id: 'custom-lip-reading', name: 'Lip Reading', base: 1 }]
+    inv.skills = [
+      { skillId: 'custom-lip-reading', occupationPoints: 0, personalPoints: 30 },
+      { skillId: 'credit-rating', occupationPoints: 10, personalPoints: 0 },
+    ]
+    const status = validateAllocation(inv)
+    expect(status.errors).toEqual([])
+    expect(status.personalSpent).toBe(30)
+    expect(skillTotal(inv.skills[0], inv.characteristics, inv.customSkills)).toBe(31)
+
+    // Occupation points on a custom skill consume a free pick; Journalist has two.
+    inv.skills = [
+      { skillId: 'custom-lip-reading', occupationPoints: 20, personalPoints: 0 },
+      { skillId: 'stealth', occupationPoints: 20, personalPoints: 0 },
+      { skillId: 'dodge', occupationPoints: 20, personalPoints: 0 },
+      { skillId: 'credit-rating', occupationPoints: 10, personalPoints: 0 },
+    ]
+    const overPicks = validateAllocation(inv)
+    expect(overPicks.errors.some((e) => e.includes('not one of the occupation'))).toBe(true)
+  })
 })
 
 describe('finances (1920s)', () => {

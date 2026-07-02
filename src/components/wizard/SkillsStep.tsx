@@ -12,6 +12,7 @@ interface Row {
   def: SkillDef
   spec?: string
   alloc: SkillAllocation | undefined
+  customId?: string
 }
 
 export default function SkillsStep({ pool }: { pool: Pool }) {
@@ -19,7 +20,11 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
   const setSkillPoints = useCreatorStore((s) => s.setSkillPoints)
   const addSpecialization = useCreatorStore((s) => s.addSpecialization)
   const removeSpecialization = useCreatorStore((s) => s.removeSpecialization)
+  const addCustomSkill = useCreatorStore((s) => s.addCustomSkill)
+  const removeCustomSkill = useCreatorStore((s) => s.removeCustomSkill)
   const [specDrafts, setSpecDrafts] = useState<Record<string, string>>({})
+  const [customName, setCustomName] = useState('')
+  const [customBase, setCustomBase] = useState(1)
 
   const occupation = inv.occupationId ? occupationById(inv.occupationId) : null
   const status = validateAllocation(inv)
@@ -45,6 +50,7 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
   const findAlloc = (skillId: string, spec?: string) =>
     inv.skills.find((a) => a.skillId === skillId && (a.spec ?? '') === (spec ?? ''))
 
+  const customSkills = inv.customSkills ?? []
   const rows: Row[] = []
   for (const def of [...SKILLS].sort((a, b) => a.name.localeCompare(b.name))) {
     if (def.specializable) {
@@ -53,6 +59,13 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
     } else {
       rows.push({ def, alloc: findAlloc(def.id) })
     }
+  }
+  for (const custom of [...customSkills].sort((a, b) => a.name.localeCompare(b.name))) {
+    rows.push({
+      def: { id: custom.id, name: custom.name, base: custom.base, category: 'special' },
+      alloc: findAlloc(custom.id),
+      customId: custom.id,
+    })
   }
 
   const chars = inv.characteristics
@@ -105,7 +118,7 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ def, spec, alloc }) => {
+            {rows.map(({ def, spec, alloc, customId }) => {
               const base = skillBase(def, chars)
               const occPts = alloc?.occupationPoints ?? 0
               const persPts = alloc?.personalPoints ?? 0
@@ -124,6 +137,15 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
                       <>
                         {' '}
                         <button className="small" title="Remove specialization" onClick={() => removeSpecialization(def.id, spec)}>
+                          ✕
+                        </button>
+                      </>
+                    )}
+                    {customId && (
+                      <>
+                        {' '}
+                        <span className="cr-note">(custom)</span>{' '}
+                        <button className="small" title="Remove custom skill" onClick={() => removeCustomSkill(customId)}>
                           ✕
                         </button>
                       </>
@@ -170,7 +192,8 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
 
         <h3>Add a specialization</h3>
         <p className="occ-detail meta">
-          Art/Craft, Fighting, Language (Other), Pilot, Science and Survival take a specialization, e.g. Science (Biology).
+          Art/Craft, Fighting, Language (Other), Pilot, Science and Survival take a specialization, e.g. Science
+          (Biology). Additional languages go here: add a Language (Other) specialization per tongue.
         </p>
         {SKILLS.filter((d) => d.specializable).map((def) => (
           <div className="spec-add" key={def.id} style={{ marginBottom: '0.4rem' }}>
@@ -198,6 +221,45 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
             </button>
           </div>
         ))}
+
+        <h3>Add a custom skill</h3>
+        <p className="occ-detail meta">
+          For skills outside the core list (with your Keeper's approval), e.g. Lip Reading. Set the base value your
+          Keeper allows — most custom skills start at 1&#37;.
+        </p>
+        <div className="spec-add">
+          <input
+            type="text"
+            placeholder="Skill name…"
+            value={customName}
+            onChange={(e) => setCustomName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                addCustomSkill(customName, customBase)
+                setCustomName('')
+              }
+            }}
+          />
+          <label className="field" style={{ marginBottom: 0 }}>
+            <span>Base &#37;</span>
+            <input
+              type="number"
+              min={0}
+              max={99}
+              value={customBase}
+              onChange={(e) => setCustomBase(Math.floor(Number(e.target.value)) || 0)}
+            />
+          </label>
+          <button
+            className="small"
+            onClick={() => {
+              addCustomSkill(customName, customBase)
+              setCustomName('')
+            }}
+          >
+            Add
+          </button>
+        </div>
       </div>
 
       {status.errors.length > 0 && (

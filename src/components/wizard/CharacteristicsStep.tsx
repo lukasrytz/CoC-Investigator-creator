@@ -3,15 +3,15 @@ import { useCreatorStore, type GenMethod } from '../../state/store'
 import { CHARACTERISTIC_NAMES, type CharacteristicName } from '../../rules/types'
 import {
   validatePointBuy,
-  validateManual,
   POINT_BUY_BUDGET,
   POINT_BUY_MIN,
   POINT_BUY_MAX,
   halfValue,
   fifthValue,
 } from '../../rules/characteristics'
-import { ageBracket, validateDeductionSplit } from '../../rules/age'
+import { ageBracket } from '../../rules/age'
 import { derivedStats } from '../../rules/derived'
+import { characteristicErrors, hasCharacteristicValues } from '../../state/progress'
 
 const METHODS: { id: GenMethod; label: string }[] = [
   { id: 'roll', label: 'Roll dice' },
@@ -27,13 +27,8 @@ export default function CharacteristicsStep() {
   const [swapA, setSwapA] = useState<CharacteristicName>('STR')
   const [swapB, setSwapB] = useState<CharacteristicName>('DEX')
 
-  const errors: string[] = []
-  if (s.genMethod === 'pointbuy') errors.push(...validatePointBuy(s.baseCharacteristics).errors)
-  if (s.genMethod === 'manual') errors.push(...validateManual(s.baseCharacteristics))
-  if (bracket.physicalDeduction > 0) errors.push(...validateDeductionSplit(inv.age, s.deductionSplit))
-  if (inv.luck === 0) errors.push('Roll or enter Luck')
-
-  const hasValues = Object.values(s.baseCharacteristics).some((v) => v > 0)
+  const errors = characteristicErrors(s)
+  const hasValues = hasCharacteristicValues(s.baseCharacteristics)
   const derived = hasValues ? derivedStats(inv.characteristics, inv.age) : null
   const pointBuy = s.genMethod === 'pointbuy' ? validatePointBuy(s.baseCharacteristics) : null
 

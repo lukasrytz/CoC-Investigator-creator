@@ -1,5 +1,5 @@
-import type { Characteristics, Investigator, Occupation, PointsFormula, SkillAllocation } from './types'
-import { skillBase, skillById } from './skills'
+import type { Characteristics, CustomSkill, Investigator, Occupation, PointsFormula, SkillAllocation } from './types'
+import { resolveSkill, skillBase } from './skills'
 import { occupationById } from './occupations'
 
 export const SKILL_CAP = 99
@@ -20,8 +20,12 @@ export function formulaLabel(formula: PointsFormula): string {
 }
 
 /** Total value of a skill: base + occupation + personal points. */
-export function skillTotal(alloc: SkillAllocation, chars: Characteristics): number {
-  return skillBase(skillById(alloc.skillId), chars) + alloc.occupationPoints + alloc.personalPoints
+export function skillTotal(
+  alloc: SkillAllocation,
+  chars: Characteristics,
+  customSkills?: readonly CustomSkill[],
+): number {
+  return skillBase(resolveSkill(customSkills, alloc.skillId), chars) + alloc.occupationPoints + alloc.personalPoints
 }
 
 export interface AllocationStatus {
@@ -40,7 +44,11 @@ export interface AllocationStatus {
  * occupation's slots: fixed skills match directly, choice slots have a
  * capacity of `count` from their group, and 'any' slots absorb the rest.
  */
-function matchSlots(occupation: Occupation, allocations: SkillAllocation[]): string[] {
+function matchSlots(
+  occupation: Occupation,
+  allocations: SkillAllocation[],
+  customSkills: readonly CustomSkill[],
+): string[] {
   const errors: string[] = []
   const fixedIds = new Set(
     occupation.slots.flatMap((s) => (s.kind === 'fixed' ? [s.skillId] : [])),
@@ -63,7 +71,7 @@ function matchSlots(occupation: Occupation, allocations: SkillAllocation[]): str
       continue
     }
     errors.push(
-      `${skillById(alloc.skillId).name} is not one of the occupation's skills (and all free picks are used)`,
+      `${resolveSkill(customSkills, alloc.skillId).name} is not one of the occupation's skills (and all free picks are used)`,
     )
   }
   return errors
@@ -81,8 +89,9 @@ export function validateAllocation(inv: Investigator): AllocationStatus {
   let personalSpent = 0
   let creditRating = 0
 
+  const customSkills = inv.customSkills ?? []
   for (const alloc of inv.skills) {
-    const def = skillById(alloc.skillId)
+    const def = resolveSkill(customSkills, alloc.skillId)
     if (alloc.occupationPoints < 0 || alloc.personalPoints < 0) {
       errors.push(`${def.name}: points cannot be negative`)
     }
@@ -91,7 +100,7 @@ export function validateAllocation(inv: Investigator): AllocationStatus {
     if (def.lockedAtCreation && alloc.occupationPoints + alloc.personalPoints > 0) {
       errors.push(`${def.name} cannot be increased at creation`)
     }
-    const total = skillTotal(alloc, chars)
+    const total = skillTotal(alloc, chars, customSkills)
     if (total > SKILL_CAP) {
       errors.push(`${def.name} exceeds the maximum of ${SKILL_CAP} (currently ${total})`)
     }
@@ -113,7 +122,7 @@ export function validateAllocation(inv: Investigator): AllocationStatus {
         `Credit Rating must be between ${occupation.creditRating.min} and ${occupation.creditRating.max} for ${occupation.name} (currently ${creditRating})`,
       )
     }
-    errors.push(...matchSlots(occupation, inv.skills))
+    errors.push(...matchSlots(occupation, inv.skills, customSkills))
   }
 
   return {

@@ -1,4 +1,6 @@
+import { useMemo } from 'react'
 import { useCreatorStore, WIZARD_STEPS } from './state/store'
+import { stepStatuses } from './state/progress'
 import BasicsStep from './components/wizard/BasicsStep'
 import CharacteristicsStep from './components/wizard/CharacteristicsStep'
 import OccupationStep from './components/wizard/OccupationStep'
@@ -11,6 +13,14 @@ export default function App() {
   const step = useCreatorStore((s) => s.step)
   const setStep = useCreatorStore((s) => s.setStep)
   const reset = useCreatorStore((s) => s.reset)
+  const genMethod = useCreatorStore((s) => s.genMethod)
+  const baseCharacteristics = useCreatorStore((s) => s.baseCharacteristics)
+  const deductionSplit = useCreatorStore((s) => s.deductionSplit)
+  const investigator = useCreatorStore((s) => s.investigator)
+  const statuses = useMemo(
+    () => stepStatuses({ genMethod, baseCharacteristics, deductionSplit, investigator }),
+    [genMethod, baseCharacteristics, deductionSplit, investigator],
+  )
 
   const steps = [
     <BasicsStep key="basics" />,
@@ -42,8 +52,15 @@ export default function App() {
 
       <nav className="steps-nav no-print">
         {WIZARD_STEPS.map((name, i) => (
-          <button key={name} className={i === step ? 'active' : ''} onClick={() => setStep(i)}>
+          <button
+            key={name}
+            className={i === step ? 'active' : ''}
+            onClick={() => setStep(i)}
+            title={statuses[i] === 'attention' ? 'This step has problems' : statuses[i] === 'complete' ? 'Complete' : undefined}
+          >
             {i + 1}. {name}
+            {statuses[i] === 'complete' && <span className="tab-mark done">✓</span>}
+            {statuses[i] === 'attention' && <span className="tab-mark attention">!</span>}
           </button>
         ))}
       </nav>

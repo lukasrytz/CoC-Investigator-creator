@@ -58,6 +58,8 @@ export interface CreatorState {
   setSkillPoints: (skillId: string, spec: string | undefined, pool: 'occupationPoints' | 'personalPoints', value: number) => void
   addSpecialization: (skillId: string, spec: string) => void
   removeSpecialization: (skillId: string, spec: string) => void
+  addCustomSkill: (name: string, base: number) => void
+  removeCustomSkill: (id: string) => void
   setBackstory: (fields: Partial<Backstory>) => void
   setGear: (gear: string[]) => void
   setNotes: (notes: string) => void
@@ -210,6 +212,32 @@ export const useCreatorStore = create<CreatorState>()(
           },
         })),
 
+      addCustomSkill: (name, base) =>
+        set((s) => {
+          const trimmed = name.trim()
+          if (!trimmed) return s
+          const slug = trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+          const id = `custom-${slug || 'skill'}`
+          const customSkills = s.investigator.customSkills ?? []
+          if (customSkills.some((c) => c.id === id)) return s
+          const clampedBase = Math.max(0, Math.min(99, Math.floor(base) || 0))
+          return {
+            investigator: {
+              ...s.investigator,
+              customSkills: [...customSkills, { id, name: trimmed, base: clampedBase }],
+            },
+          }
+        }),
+
+      removeCustomSkill: (id) =>
+        set((s) => ({
+          investigator: {
+            ...s.investigator,
+            customSkills: (s.investigator.customSkills ?? []).filter((c) => c.id !== id),
+            skills: s.investigator.skills.filter((a) => a.skillId !== id),
+          },
+        })),
+
       setBackstory: (fields) =>
         set((s) => ({
           investigator: { ...s.investigator, backstory: { ...s.investigator.backstory, ...fields } },
@@ -231,6 +259,17 @@ export const useCreatorStore = create<CreatorState>()(
           investigator: emptyInvestigator(),
         }),
     }),
-    { name: 'coc-investigator-creator' },
+    {
+      name: 'coc-investigator-creator',
+      version: 1,
+      // v0 saves predate custom skills; give them the empty list.
+      migrate: (persisted) => {
+        const state = persisted as CreatorState
+        if (state?.investigator && !state.investigator.customSkills) {
+          state.investigator.customSkills = []
+        }
+        return state
+      },
+    },
   ),
 )

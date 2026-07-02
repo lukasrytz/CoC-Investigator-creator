@@ -1,4 +1,4 @@
-import type { Characteristics, SkillDef } from './types'
+import type { Characteristics, CustomSkill, SkillDef } from './types'
 import { halfValue } from './characteristics'
 
 /**
@@ -62,6 +62,16 @@ export function skillById(id: string): SkillDef {
   const skill = byId.get(id)
   if (!skill) throw new Error(`Unknown skill: ${id}`)
   return skill
+}
+
+/**
+ * Resolve a skill id to its definition, checking the investigator's custom
+ * skills first (their ids carry the "custom-" prefix).
+ */
+export function resolveSkill(customSkills: readonly CustomSkill[] | undefined, id: string): SkillDef {
+  const custom = customSkills?.find((c) => c.id === id)
+  if (custom) return { id: custom.id, name: custom.name, base: custom.base, category: 'special' }
+  return skillById(id)
 }
 
 /** Resolve a skill's base value against the investigator's characteristics. */

@@ -70,6 +70,14 @@ export interface Occupation {
   suggestedContacts: string
 }
 
+/** A player-defined skill outside the core list (Keeper's approval), e.g. a hobby. */
+export interface CustomSkill {
+  /** Prefixed id, e.g. "custom-lip-reading". */
+  id: string
+  name: string
+  base: number
+}
+
 /** A skill the investigator has put points into (or that has a spec). */
 export interface SkillAllocation {
   skillId: string
@@ -100,6 +108,7 @@ export interface Investigator {
   luck: number
   occupationId: string | null
   skills: SkillAllocation[]
+  customSkills: CustomSkill[]
   backstory: Backstory
   gear: string[]
   /** Free-text notes about spending money etc. */
@@ -129,6 +138,7 @@ export function emptyInvestigator(): Investigator {
     luck: 0,
     occupationId: null,
     skills: [],
+    customSkills: [],
     backstory: emptyBackstory(),
     gear: [],
     notes: '',

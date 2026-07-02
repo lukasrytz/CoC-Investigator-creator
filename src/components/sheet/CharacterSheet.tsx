@@ -38,6 +38,16 @@ export default function CharacterSheet({ inv }: { inv: Investigator }) {
       const alloc = inv.skills.find((a) => a.skillId === def.id)
       return [{ name: def.name, total: base + (alloc?.occupationPoints ?? 0) + (alloc?.personalPoints ?? 0) }]
     })
+    .concat(
+      (inv.customSkills ?? []).map((custom) => {
+        const alloc = inv.skills.find((a) => a.skillId === custom.id)
+        return {
+          name: custom.name,
+          total: custom.base + (alloc?.occupationPoints ?? 0) + (alloc?.personalPoints ?? 0),
+        }
+      }),
+    )
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   return (
     <div className="sheet" id="character-sheet">

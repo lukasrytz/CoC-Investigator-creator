@@ -61,7 +61,7 @@ export default function ReviewStep() {
           </ul>
         </div>
       ) : (
-        <div className="ok-banner no-print">Your investigator is complete and rules-legal. Good luck out there.</div>
+        <div className="ok-banner no-print">✓ Complete and rules-legal</div>
       )}
 
       <div className="card no-print">
@@ -100,7 +100,10 @@ export default function ReviewStep() {
         )}
       </div>
 
-      <CharacterSheet inv={inv} />
+      <div className="sheet-wrap">
+        {status.errors.length === 0 && <div className="sheet-stamp">Cleared for field work</div>}
+        <CharacterSheet inv={inv} />
+      </div>
     </>
   )
 }

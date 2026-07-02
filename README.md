@@ -15,11 +15,16 @@ localStorage.
 - **Live derived stats**: HP, MP, Sanity, Luck, damage bonus, build and MOV update as you type.
 - **28 core occupations** with skill point formulas, credit rating ranges and skill slots
   (fixed skills, "choice of N" groups, free picks) — allocations are validated as you spend.
+- **Specializations and custom skills**: add specializations for Art/Craft, Science, Language
+  (Other) — one per language — Fighting, Pilot and Survival, plus fully custom skills with a
+  Keeper-approved name and base value.
 - **Backstory prompts**: dice buttons for ideology, significant people, locations, possessions and
   traits, plus key-connection selection.
 - **1920s finances** computed from Credit Rating (standard of living, spending level, cash, assets).
 - **Output**: a print-friendly character sheet (use the browser's print-to-PDF), or fill your own
   downloaded copy of the official fillable PDF sheet directly in the browser.
+- **1920s case-file design**: manila folder chrome, file-tab navigation with per-step completion
+  and problem markers, typewriter lettering (Special Elite) and rubber-stamp validation states.
 
 ## Development
 

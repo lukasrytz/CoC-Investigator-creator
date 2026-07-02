@@ -55,6 +55,13 @@ function skillTargets(inv: Investigator): Target[] {
     targets.push({ candidates: names.map((n) => `${n} half`), value: String(halfValue(total)) })
     targets.push({ candidates: names.map((n) => `${n} fifth`), value: String(fifthValue(total)) })
   }
+  for (const custom of inv.customSkills ?? []) {
+    const allocs = inv.skills.filter((a) => a.skillId === custom.id)
+    const total = custom.base + allocs.reduce((n, a) => n + a.occupationPoints + a.personalPoints, 0)
+    targets.push({ candidates: [custom.name], value: String(total) })
+    targets.push({ candidates: [`${custom.name} half`], value: String(halfValue(total)) })
+    targets.push({ candidates: [`${custom.name} fifth`], value: String(fifthValue(total)) })
+  }
   return targets
 }
 
