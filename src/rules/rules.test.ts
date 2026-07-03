@@ -33,6 +33,7 @@ import {
 } from './allocation'
 import { finances1920s } from './finance'
 import { GEAR_CATALOG_1920S, gearLabel, gearPlausibility, gearSpending, parseGearPrice } from './gear'
+import { characterFileMarkdown, parseCharacterFile, type CharacterFileData } from './characterFile'
 import type { Characteristics, Investigator } from './types'
 import { emptyInvestigator } from './types'
 
@@ -411,5 +412,54 @@ describe('gear budget & plausibility', () => {
         if (item.skill) expect(() => skillById(item.skill!)).not.toThrow()
       }
     }
+  })
+})
+
+describe('character file (.md)', () => {
+  const sample = (): CharacterFileData => {
+    const investigator = emptyInvestigator()
+    investigator.name = 'Harvey Walters'
+    investigator.age = 42
+    investigator.occupationId = 'journalist'
+    investigator.characteristics = chars({ EDU: 70, DEX: 60 })
+    investigator.luck = 45
+    investigator.skills = [
+      { skillId: 'library-use', occupationPoints: 40, personalPoints: 0 },
+      { skillId: 'credit-rating', occupationPoints: 20, personalPoints: 0 },
+    ]
+    investigator.gear = ['Flashlight ($2.00)', 'Notebook and pencil ($0.25)']
+    investigator.backstory.ideology = 'The truth must out -- whatever it costs'
+    investigator.backstory.keyConnection = 'ideology'
+    investigator.notes = 'Watch out for <!-- comment --> injection'
+    return {
+      genMethod: 'roll',
+      baseCharacteristics: chars({ EDU: 65, DEX: 60 }),
+      hasRolled: true,
+      deductionSplit: {},
+      eduChecks: [{ roll: 80, improved: true, gain: 5, eduAfter: 70 }],
+      luckRolls: [45],
+      investigator,
+    }
+  }
+
+  it('round-trips losslessly, even with "--" and "-->" in text fields', () => {
+    const data = sample()
+    const md = characterFileMarkdown(data)
+    expect(parseCharacterFile(md)).toEqual(data)
+  })
+
+  it('renders a readable sheet', () => {
+    const md = characterFileMarkdown(sample())
+    expect(md).toContain('# Harvey Walters — Journalist')
+    expect(md).toContain('| STR | CON | SIZ | DEX | APP | INT | POW | EDU | Luck |')
+    expect(md).toContain('| Library Use | 60 | 30 | 12 |')
+    expect(md).toContain('- Flashlight ($2.00)')
+    expect(md).toContain('**Ideology / Beliefs:** ★')
+  })
+
+  it('rejects files without or with broken data blocks', () => {
+    expect(() => parseCharacterFile('# Just some markdown')).toThrow(/No investigator data/)
+    const md = characterFileMarkdown(sample())
+    expect(() => parseCharacterFile(md.replace('"investigator"', '"investigator'))).toThrow(/not valid JSON/)
   })
 })

@@ -1,10 +1,24 @@
+import { useState } from 'react'
 import { useCreatorStore } from '../../state/store'
 import { MIN_AGE, MAX_AGE, ageBracket } from '../../rules/age'
+import { parseCharacterFile } from '../../rules/characterFile'
 
 export default function BasicsStep() {
   const inv = useCreatorStore((s) => s.investigator)
   const setBasics = useCreatorStore((s) => s.setBasics)
   const setAge = useCreatorStore((s) => s.setAge)
+  const loadSaved = useCreatorStore((s) => s.loadSaved)
+  const [importError, setImportError] = useState('')
+
+  const handleImport = async (file: File | undefined) => {
+    if (!file) return
+    try {
+      loadSaved(parseCharacterFile(await file.text()))
+      setImportError('')
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : 'Could not read that file.')
+    }
+  }
 
   const bracket = ageBracket(inv.age)
   const ageNotes: string[] = []
@@ -18,6 +32,25 @@ export default function BasicsStep() {
   if (bracket.movePenalty) ageNotes.push(`MOV −${bracket.movePenalty}`)
 
   return (
+    <>
+    <div className="card">
+      <h2>Resume a saved investigator</h2>
+      <div className="spec-add">
+        <input
+          type="file"
+          accept=".md,text/markdown"
+          onChange={(e) => {
+            void handleImport(e.target.files?.[0])
+            e.target.value = ''
+          }}
+        />
+        <span className="occ-detail meta">
+          Upload a character file (.md) downloaded from the Review step to continue where you left off.
+        </span>
+      </div>
+      {importError && <div className="errors" style={{ marginTop: '0.6rem' }}>{importError}</div>}
+    </div>
+
     <div className="card">
       <h2>Who is your investigator?</h2>
       <div className="grid-2">
@@ -58,5 +91,6 @@ export default function BasicsStep() {
         </p>
       )}
     </div>
+    </>
   )
 }

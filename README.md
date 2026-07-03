@@ -34,6 +34,8 @@ or build the app yourself.
 - **Backstory prompts**: dice buttons for ideology, significant people, locations, possessions and
   traits, plus key-connection selection.
 - **1920s finances** computed from Credit Rating (standard of living, spending level, cash, assets).
+- **Character files (.md)**: download the investigator as a readable Markdown sheet with the full
+  creation state embedded in a comment; upload it on the first step later to continue editing.
 - **Equipment catalog** in the style of the Investigator Handbook's price guide: ~75 items with
   1920s prices, grouped by category (investigation tools, firearms, clothing, …) on the gear step.
   Purchases are tracked against the Credit Rating finances: items at or below the Spending Level

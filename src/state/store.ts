@@ -19,6 +19,7 @@ import {
   MAX_AGE,
 } from '../rules/age'
 import { occupationById } from '../rules/occupations'
+import type { CharacterFileData } from '../rules/characterFile'
 
 export type GenMethod = 'roll' | 'pointbuy' | 'manual'
 
@@ -63,6 +64,7 @@ export interface CreatorState {
   setBackstory: (fields: Partial<Backstory>) => void
   setGear: (gear: string[]) => void
   setNotes: (notes: string) => void
+  loadSaved: (data: CharacterFileData) => void
   reset: () => void
 }
 
@@ -246,6 +248,18 @@ export const useCreatorStore = create<CreatorState>()(
       setGear: (gear) => set((s) => ({ investigator: { ...s.investigator, gear } })),
 
       setNotes: (notes) => set((s) => ({ investigator: { ...s.investigator, notes } })),
+
+      loadSaved: (data) =>
+        set({
+          genMethod: data.genMethod,
+          baseCharacteristics: data.baseCharacteristics,
+          hasRolled: data.hasRolled,
+          deductionSplit: data.deductionSplit,
+          eduChecks: data.eduChecks,
+          luckRolls: data.luckRolls,
+          investigator: data.investigator,
+          step: WIZARD_STEPS.length - 1,
+        }),
 
       reset: () =>
         set({

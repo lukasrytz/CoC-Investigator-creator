@@ -3,6 +3,7 @@ import { useCreatorStore } from '../../state/store'
 import { validateAllocation } from '../../rules/allocation'
 import CharacterSheet from '../sheet/CharacterSheet'
 import { dumpFieldNames, fillOfficialSheet, type FillReport } from '../../pdf/fillSheet'
+import { characterFileMarkdown } from '../../rules/characterFile'
 
 function download(bytes: Uint8Array | string, filename: string, type: string) {
   const blob = new Blob([bytes as BlobPart], { type })
@@ -17,6 +18,20 @@ function download(bytes: Uint8Array | string, filename: string, type: string) {
 export default function ReviewStep() {
   const inv = useCreatorStore((s) => s.investigator)
   const status = validateAllocation(inv)
+  const downloadCharacterFile = () => {
+    const s = useCreatorStore.getState()
+    const md = characterFileMarkdown({
+      genMethod: s.genMethod,
+      baseCharacteristics: s.baseCharacteristics,
+      hasRolled: s.hasRolled,
+      deductionSplit: s.deductionSplit,
+      eduChecks: s.eduChecks,
+      luckRolls: s.luckRolls,
+      investigator: s.investigator,
+    })
+    const slug = (inv.name || 'investigator').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    download(md, `${slug || 'investigator'}.md`, 'text/markdown')
+  }
   const fileInput = useRef<HTMLInputElement>(null)
   const [report, setReport] = useState<FillReport | null>(null)
   const [pdfError, setPdfError] = useState('')
@@ -71,6 +86,15 @@ export default function ReviewStep() {
             Print / Save as PDF
           </button>
           <span className="occ-detail meta">Uses your browser's print dialog; the sheet below is the print layout.</span>
+        </div>
+
+        <div className="spec-add" style={{ marginBottom: '0.8rem' }}>
+          <button className="ghost" onClick={downloadCharacterFile}>
+            Download character file (.md)
+          </button>
+          <span className="occ-detail meta">
+            A readable Markdown sheet that can be re-uploaded on the first step to continue editing later.
+          </span>
         </div>
 
         <h3>Fill the official fillable PDF</h3>
