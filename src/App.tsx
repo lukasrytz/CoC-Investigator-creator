@@ -79,6 +79,10 @@ export default function App() {
           Next →
         </button>
       </div>
+
+      <footer className="app-footer no-print">
+        Unofficial fan tool · build {typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'}
+      </footer>
     </>
   )
 }

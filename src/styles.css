@@ -279,6 +279,16 @@ button.small:hover { border-color: var(--red-ink); color: var(--red-ink); }
 .pool strong { font-family: var(--type); font-size: 1.1rem; }
 .pool.over strong { color: var(--red-ink); }
 
+.app-footer {
+  margin-top: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--type);
+  font-size: 0.68rem;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
 /* Gear catalog (equipment step) */
 .gear-catalog details {
   border-top: 1px solid var(--line);
