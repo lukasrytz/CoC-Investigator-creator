@@ -23,8 +23,11 @@ or build the app yourself.
 - **Full age modifiers**: bracket deductions, automatic EDU improvement checks, teen Luck
   (roll twice, keep best), MOV penalties — with each adjustment shown.
 - **Live derived stats**: HP, MP, Sanity, Luck, damage bonus, build and MOV update as you type.
-- **28 core occupations** with skill point formulas, credit rating ranges and skill slots
-  (fixed skills, "choice of N" groups, free picks) — allocations are validated as you spend.
+- **100 occupations** — the core rulebook list plus the extended Investigator Handbook list
+  (near-duplicate variants merged) — with skill point formulas, credit rating ranges and skill
+  slots (fixed skills, "choice of N" groups, free picks); allocations are validated as you spend.
+  Includes the IH expansion skills they need (Animal Handling, Demolitions, Diving, Hypnosis,
+  Read Lips, Artillery, Lore).
 - **Specializations and custom skills**: add specializations for Art/Craft, Science, Language
   (Other) — one per language — Fighting, Pilot and Survival, plus fully custom skills with a
   Keeper-approved name and base value.
