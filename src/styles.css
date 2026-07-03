@@ -311,6 +311,32 @@ button.small:hover { border-color: var(--red-ink); color: var(--red-ink); }
   color: var(--ink-faint);
   font-size: 0.9em;
 }
+.gear-price.over {
+  color: var(--red-ink);
+}
+.gear-flag {
+  color: var(--red-ink);
+  font-size: 0.85em;
+}
+.derived-box.overspent .value,
+.derived-box.overspent .label {
+  color: var(--red-ink);
+}
+.keeper-note {
+  font-family: var(--type);
+  font-size: 0.78rem;
+  color: var(--red-ink);
+  background: var(--red-soft);
+  border-left: 3px solid var(--red-ink);
+  padding: 0.4rem 0.6rem;
+  margin: 0.6rem 0 0;
+}
+.hint {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--ink-faint);
+  margin: 0.5rem 0 0;
+}
 
 /* Era/rarity tags, e.g. [Modern] */
 .tag {

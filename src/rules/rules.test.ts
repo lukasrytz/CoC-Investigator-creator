@@ -32,7 +32,7 @@ import {
   skillTotal,
 } from './allocation'
 import { finances1920s } from './finance'
-import { GEAR_CATALOG_1920S, gearLabel } from './gear'
+import { GEAR_CATALOG_1920S, gearLabel, gearPlausibility, gearSpending, parseGearPrice } from './gear'
 import type { Characteristics, Investigator } from './types'
 import { emptyInvestigator } from './types'
 
@@ -368,5 +368,48 @@ describe('gear catalog', () => {
     }
     expect(gearLabel({ name: 'Flashlight', price: '$2.00' })).toBe('Flashlight ($2.00)')
     expect(gearLabel({ name: 'Newspaper clippings file' })).toBe('Newspaper clippings file')
+  })
+})
+
+describe('gear budget & plausibility', () => {
+  it('parses prices from gear labels', () => {
+    expect(parseGearPrice('Thompson submachine gun ($200.00)')).toBe(200)
+    expect(parseGearPrice('Flashlight ($2.00)')).toBe(2)
+    expect(parseGearPrice('Newspaper clippings file')).toBeUndefined()
+    expect(parseGearPrice('$5 bill (souvenir)')).toBeUndefined()
+  })
+
+  it('items at or below spending level are covered; dearer ones deduct', () => {
+    const fin = finances1920s(60) // Wealthy: spending level $50
+    const { spent, covered } = gearSpending(
+      ['Flashlight ($2.00)', 'Thompson submachine gun ($200.00)', 'Newspaper clippings file'],
+      fin,
+    )
+    expect(spent).toBe(200)
+    expect(covered).toBe(1)
+    expect(gearSpending([], fin)).toEqual({ spent: 0, covered: 0 })
+  })
+
+  it('flags firearms that fit neither occupation nor skills', () => {
+    const revolver = GEAR_CATALOG_1920S.flatMap((c) => c.items).find((i) => i.name === '.38 revolver')!
+    const librarian = occupationById('librarian')
+    const police = occupationById('police-officer')
+    expect(gearPlausibility(revolver, police, [])).toBe('ok')
+    expect(gearPlausibility(revolver, librarian, [])).toBe('unusual')
+    expect(
+      gearPlausibility(revolver, librarian, [
+        { skillId: 'firearms-handgun', occupationPoints: 0, personalPoints: 30 },
+      ]),
+    ).toBe('ok')
+    expect(gearPlausibility({ name: 'Flashlight', price: '$2.00' }, librarian, [])).toBe('ok')
+    expect(gearPlausibility(revolver, undefined, [])).toBe('ok')
+  })
+
+  it('gear skill tags reference real skills', () => {
+    for (const cat of GEAR_CATALOG_1920S) {
+      for (const item of cat.items) {
+        if (item.skill) expect(() => skillById(item.skill!)).not.toThrow()
+      }
+    }
   })
 })

@@ -34,6 +34,9 @@ export function finances1920s(creditRating: number): Finances {
 }
 
 export function formatDollars(amount: number): string {
-  if (amount < 1) return `$${amount.toFixed(2)}`
-  return `$${amount.toLocaleString('en-US')}`
+  const fractionDigits = Number.isInteger(amount) && amount >= 1 ? 0 : 2
+  return `$${amount.toLocaleString('en-US', {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  })}`
 }

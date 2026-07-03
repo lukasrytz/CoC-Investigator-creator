@@ -6,6 +6,7 @@ import { derivedStats } from '../../rules/derived'
 import { occupationById } from '../../rules/occupations'
 import { validateAllocation } from '../../rules/allocation'
 import { finances1920s, formatDollars } from '../../rules/finance'
+import { gearSpending } from '../../rules/gear'
 import {
   CornerFlourish,
   SectionDivider,
@@ -41,6 +42,7 @@ export default function CharacterSheet({ inv }: { inv: Investigator }) {
   const occupation = inv.occupationId ? occupationById(inv.occupationId) : null
   const { creditRating } = validateAllocation(inv)
   const fin = finances1920s(creditRating)
+  const { spent: gearSpent } = gearSpending(inv.gear, fin)
 
   // One row per skill (specializable skills appear once per specialization).
   // Modern-era skills stay off the 1920s sheet unless points were put in them.
@@ -203,6 +205,16 @@ export default function CharacterSheet({ inv }: { inv: Investigator }) {
         <div>
           Credit Rating {creditRating} — {fin.label}. Spending level {formatDollars(fin.spendingLevel)}, cash{' '}
           {formatDollars(fin.cash)}, assets {fin.assetsNote ?? formatDollars(fin.assets)}.
+          {gearSpent > 0 && (
+            <>
+              {' '}
+              Spent on gear {formatDollars(gearSpent)}, cash remaining{' '}
+              {fin.cash - gearSpent < 0
+                ? `−${formatDollars(gearSpent - fin.cash)}`
+                : formatDollars(fin.cash - gearSpent)}
+              .
+            </>
+          )}
         </div>
 
         {inv.notes && (

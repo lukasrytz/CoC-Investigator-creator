@@ -1,7 +1,12 @@
+import type { Finances } from './finance'
+import type { Occupation, SkillAllocation } from './types'
+
 export interface GearItem {
   name: string
   /** Approximate 1920s US price, formatted, e.g. "$2.00". */
   price?: string
+  /** Skill whose use justifies owning this item (plausibility hint). */
+  skill?: string
 }
 
 export interface GearCategory {
@@ -76,15 +81,15 @@ export const GEAR_CATALOG_1920S: readonly GearCategory[] = [
   {
     name: 'Firearms',
     items: [
-      { name: '.22 revolver', price: '$10.00' },
-      { name: '.30 hunting rifle', price: '$25.00' },
-      { name: '.38 revolver', price: '$15.00' },
-      { name: '.45 automatic pistol', price: '$32.00' },
-      { name: '12-gauge shotgun (double-barrel)', price: '$40.00' },
+      { name: '.22 revolver', price: '$10.00', skill: 'firearms-handgun' },
+      { name: '.30 hunting rifle', price: '$25.00', skill: 'firearms-rifle-shotgun' },
+      { name: '.38 revolver', price: '$15.00', skill: 'firearms-handgun' },
+      { name: '.45 automatic pistol', price: '$32.00', skill: 'firearms-handgun' },
+      { name: '12-gauge shotgun (double-barrel)', price: '$40.00', skill: 'firearms-rifle-shotgun' },
       { name: 'Ammunition (box of 50 rounds)', price: '$2.00' },
       { name: 'Gun cleaning kit', price: '$1.50' },
       { name: 'Shotgun shells (box of 25)', price: '$1.25' },
-      { name: 'Thompson submachine gun', price: '$200.00' },
+      { name: 'Thompson submachine gun', price: '$200.00', skill: 'firearms-rifle-shotgun' },
     ],
   },
   {
@@ -153,4 +158,49 @@ export const GEAR_CATALOG_1920S: readonly GearCategory[] = [
 /** Label used when adding an item to the investigator's gear list. */
 export function gearLabel(item: GearItem): string {
   return item.price ? `${item.name} (${item.price})` : item.name
+}
+
+/** Parse the price back out of a gear-list entry's "… ($X.XX)" suffix. */
+export function parseGearPrice(label: string): number | undefined {
+  const match = /\(\$([\d,]+\.\d{2})\)$/.exec(label.trim())
+  if (!match) return undefined
+  return Number(match[1].replace(/,/g, ''))
+}
+
+/**
+ * Budget bookkeeping per the 7e rules: purchases at or below the Spending
+ * Level are covered by the investigator's standard of living; only pricier
+ * items come out of Cash. Unpriced items cost nothing.
+ */
+export function gearSpending(gear: readonly string[], fin: Finances): { spent: number; covered: number } {
+  let spent = 0
+  let covered = 0
+  for (const label of gear) {
+    const price = parseGearPrice(label)
+    if (price === undefined) continue
+    if (price > fin.spendingLevel) spent += price
+    else covered += 1
+  }
+  return { spent, covered }
+}
+
+/**
+ * Keeper-style plausibility hint: an item tied to a skill (a firearm) looks
+ * natural when the occupation's skill slots include that skill, or when the
+ * investigator actually put points into it — otherwise it raises an eyebrow.
+ */
+export function gearPlausibility(
+  item: GearItem,
+  occupation: Occupation | undefined,
+  skills: readonly SkillAllocation[],
+): 'ok' | 'unusual' {
+  if (!item.skill || !occupation) return 'ok'
+  for (const slot of occupation.slots) {
+    if (slot.kind === 'fixed' && slot.skillId === item.skill) return 'ok'
+    if (slot.kind === 'choice' && slot.from.includes(item.skill)) return 'ok'
+  }
+  const trained = skills.some(
+    (a) => a.skillId === item.skill && a.occupationPoints + a.personalPoints > 0,
+  )
+  return trained ? 'ok' : 'unusual'
 }
