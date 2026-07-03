@@ -340,12 +340,13 @@ tr.locked td { color: var(--ink-faint); font-style: italic; }
 }
 .gear-suggestions { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
 
+
 /* ===================== Character sheet ===================== */
 .sheet-wrap { position: relative; }
 .sheet-stamp {
   position: absolute;
-  top: 5.2rem;
-  right: 2.5rem;
+  top: 6.5rem;
+  right: 3rem;
   z-index: 2;
   font-family: var(--serif);
   font-weight: 700;
@@ -362,47 +363,250 @@ tr.locked td { color: var(--ink-faint); font-style: italic; }
 }
 
 .sheet {
-  background: #fdfaf0;
-  color: #1c1611;
-  border: 1px solid var(--line);
-  box-shadow: 1px 3px 8px rgba(43, 33, 24, 0.3);
-  padding: 1.5rem;
-  margin: 0 auto 1rem;
-  max-width: 820px;
-  font-size: 0.85rem;
+  margin: 0 auto;
+  max-width: 210mm;
+  color: #241c11;
 }
-.sheet-page { page-break-after: always; }
-.sheet-page:last-child { page-break-after: auto; }
-.sheet h2.sheet-title {
-  font-size: 1.25rem;
-  text-align: center;
-  border-bottom: 3px double #1c1611;
-  padding-bottom: 0.4rem;
-  margin-bottom: 0.8rem;
-  letter-spacing: 0.22em;
+
+.sheet-page {
+  position: relative;
+  background: #f8f0da;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(255, 250, 235, 0.9) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 90%, rgba(150, 110, 60, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse at 8% 95%, rgba(150, 110, 60, 0.1) 0%, transparent 45%),
+    repeating-linear-gradient(0deg, rgba(120, 90, 40, 0.02) 0 2px, transparent 2px 4px);
+  box-shadow: 1px 3px 10px rgba(0, 0, 0, 0.35);
+  padding: 11mm 12mm 12mm;
+  margin-bottom: 1rem;
+  overflow: hidden;
 }
-.sheet h3 { border-bottom: 1px solid #1c1611; }
-.sheet-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.2rem 1.2rem; margin-bottom: 0.8rem; }
-.sheet-info div { border-bottom: 1px dotted #8a7a60; padding: 0.15rem 0; font-family: var(--type); font-size: 0.82rem; }
-.sheet-info span { font-family: Georgia, serif; font-variant: small-caps; color: #6b5d4a; font-size: 0.75rem; margin-right: 0.4rem; }
-.sheet-chars { display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.4rem; margin-bottom: 0.6rem; }
-.sheet-chars .char-box { padding: 0.3rem; }
-.sheet-derived { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
-.sheet-skills { column-count: 3; column-gap: 1.2rem; }
-@media (max-width: 700px) { .sheet-skills { column-count: 2; } .sheet-chars { grid-template-columns: repeat(4, 1fr); } }
-.sheet-skill { display: flex; justify-content: space-between; break-inside: avoid; border-bottom: 1px dotted #b5a684; padding: 0.1rem 0; }
+/* double-rule frame */
+.sheet-page::before {
+  content: '';
+  position: absolute;
+  inset: 5mm;
+  border: 1.5px solid #3a2f1e;
+  pointer-events: none;
+}
+.sheet-page::after {
+  content: '';
+  position: absolute;
+  inset: 6.6mm;
+  border: 0.6px solid #3a2f1e;
+  pointer-events: none;
+}
+.sheet-page { display: flex; flex-direction: column; }
+.sheet-page-inner {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.sheet-page-inner > * { flex: none; }
+.sheet-tentacles { margin-top: auto !important; padding-top: 6mm; }
+
+.corner {
+  position: absolute;
+  width: 15mm;
+  height: 15mm;
+  color: #3a2f1e;
+  z-index: 2;
+}
+.corner-tl { top: 3.2mm; left: 3.2mm; }
+.corner-tr { top: 3.2mm; right: 3.2mm; transform: rotate(90deg); }
+.corner-br { bottom: 3.2mm; right: 3.2mm; transform: rotate(180deg); }
+.corner-bl { bottom: 3.2mm; left: 3.2mm; transform: rotate(270deg); }
+
+/* stains (aging layer) */
+.stain { position: absolute; pointer-events: none; z-index: 0; }
+.stain-ring-1 { width: 34mm; height: 34mm; top: 50mm; right: -6mm; transform: rotate(12deg); }
+.stain-ring-2 { width: 28mm; height: 28mm; bottom: 30mm; left: -5mm; transform: rotate(-30deg); }
+.stain-blot-1 { width: 14mm; height: 14mm; top: 8mm; right: 20mm; transform: rotate(20deg); }
+
+/* header */
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6mm;
+  margin-bottom: 3mm;
+}
+.sheet-emblem { width: 16mm; height: 16mm; color: #3a2f1e; flex: none; }
+.sheet-titles { text-align: center; }
+.sheet-super {
+  font-family: var(--serif);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: #6b5a3d;
+}
+h2.sheet-title {
+  font-family: var(--serif);
+  font-size: 1.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: none;
+  margin: 0.1rem 0;
+  padding: 0;
+}
+.sheet-sub { font-style: italic; font-size: 0.8rem; color: #6b5a3d; }
+.sheet-header-small { justify-content: flex-start; margin-bottom: 1mm; }
+.sheet-header-small .sheet-super { letter-spacing: 0.22em; }
+
+/* section dividers */
+.ornament-divider {
+  display: flex;
+  align-items: center;
+  gap: 2.5mm;
+  margin: 4mm 0 2.5mm;
+  color: #3a2f1e;
+}
+.divider-label {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  order: -1;
+  white-space: nowrap;
+}
+.divider-motif { width: 13mm; height: 4mm; flex: none; }
+.ornament-divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid #3a2f1e;
+  height: 0;
+  opacity: 0.75;
+}
+
+/* info grid */
+.sheet-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5mm 6mm; }
+.sheet-info div {
+  border-bottom: 1px dotted #8a7a60;
+  padding: 0.8mm 0;
+  font-family: var(--type);
+  font-size: 0.8rem;
+}
+.sheet-info span {
+  font-family: Georgia, serif;
+  font-variant: small-caps;
+  color: #6b5a3d;
+  font-size: 0.72rem;
+  margin-right: 1.5mm;
+}
+
+/* characteristics + derived boxes on the sheet */
+.sheet-chars { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1.6mm; margin-bottom: 2.5mm; }
+.sheet-chars .char-box { background: transparent; border: 1px solid #3a2f1e; padding: 1.2mm; }
+.sheet-chars .char-value { font-size: 1.25rem; }
+.sheet-derived { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1.6mm; }
+.sheet-derived .derived-box {
+  background: transparent;
+  border: 1px solid #3a2f1e;
+  box-shadow: inset 0 0 0 1.5px #f8f0da, inset 0 0 0 2.2px #8a7a60;
+}
+
+/* skills */
+.sheet-skills { column-count: 3; column-gap: 6mm; }
+.sheet-skill {
+  display: flex;
+  justify-content: space-between;
+  break-inside: avoid;
+  border-bottom: 1px dotted #b5a684;
+  padding: 0.4mm 0;
+  font-size: 0.78rem;
+}
 .sheet-skill .vals { white-space: nowrap; font-family: var(--type); }
-.sheet-skill .frac { color: #6b5d4a; font-size: 0.72rem; }
-.sheet-backstory div { margin-bottom: 0.55rem; }
-.sheet-backstory .bs-label { font-variant: small-caps; color: #6b5d4a; }
-.sheet-gear ul { columns: 2; margin: 0.3rem 0; padding-left: 1.2rem; font-family: var(--type); }
+.sheet-skill .frac { color: #6b5a3d; font-size: 0.68rem; }
+
+/* backstory / gear */
+.sheet-backstory div { margin-bottom: 1.8mm; font-size: 0.85rem; }
+.sheet-backstory .bs-label { font-variant: small-caps; color: #6b5a3d; }
+.key-connection { color: var(--red-ink); font-weight: 600; }
+.sheet-gear ul { columns: 2; margin: 1mm 0; padding-left: 5mm; font-family: var(--type); font-size: 0.82rem; }
+
+.sheet-tentacles {
+  display: block;
+  width: 58%;
+  margin: 7mm auto 0;
+  color: #4a3a26;
+  opacity: 0.85;
+}
+
+/* fill-in areas */
+table.sheet-weapons { width: 100%; border-collapse: collapse; }
+table.sheet-weapons th {
+  font-family: var(--serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6b5a3d;
+  text-align: left;
+  border-bottom: 1px solid #3a2f1e;
+  padding: 0.6mm 1.5mm;
+}
+table.sheet-weapons th:first-child { width: 30%; }
+table.sheet-weapons td { border-bottom: 1px dotted #8a7a60; height: 6.5mm; }
+table.sheet-weapons td + td { border-left: 1px dotted #c3b288; }
+
+.note-lines { margin-top: 1mm; }
+.note-line { border-bottom: 1px dotted #8a7a60; height: 6.5mm; }
+
+/* ===================== Print (A4) ===================== */
+@page { size: A4; margin: 0; }
 
 @media print {
   body { background: #fff; }
-  #root { max-width: none; padding: 0; margin: 0; background: none; box-shadow: none; }
+  #root {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
   #root::before { display: none; }
   .no-print { display: none !important; }
-  .sheet { border: none; box-shadow: none; padding: 0; max-width: none; font-size: 11pt; }
-  .sheet-skills { column-count: 3; }
-  .sheet-stamp { position: absolute; }
+  .sheet-wrap .sheet-stamp { top: 40mm; right: 18mm; }
+
+  .sheet, .sheet * , .sheet-stamp {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .sheet { max-width: none; }
+  .sheet-page {
+    width: 210mm;
+    min-height: 296mm;
+    margin: 0;
+    padding: 13mm 14mm;
+    box-shadow: none;
+    page-break-after: always;
+  }
+  .sheet-page:last-child { page-break-after: auto; }
+  .sheet-page::before { inset: 6mm; }
+  .sheet-page::after { inset: 7.6mm; }
+  .corner { width: 16mm; height: 16mm; }
+  .corner-tl { top: 4mm; left: 4mm; }
+  .corner-tr { top: 4mm; right: 4mm; }
+  .corner-br { bottom: 4mm; right: 4mm; }
+  .corner-bl { bottom: 4mm; left: 4mm; }
+
+  h2.sheet-title { font-size: 22pt; }
+  .sheet-super { font-size: 8pt; }
+  .sheet-sub { font-size: 9pt; }
+  .sheet-info div { font-size: 9pt; }
+  .sheet-info span { font-size: 7.5pt; }
+  .divider-label { font-size: 9.5pt; }
+  .sheet-chars .char-name { font-size: 8pt; }
+  .sheet-chars .char-value { font-size: 15pt; }
+  .sheet-chars .char-frac { font-size: 7pt; }
+  .sheet-derived .label { font-size: 7pt; }
+  .sheet-derived .value { font-size: 13pt; }
+  .sheet-skill { font-size: 8.2pt; }
+  .sheet-skill .frac { font-size: 7pt; }
+  .sheet-backstory div { font-size: 9.5pt; }
+  .sheet-gear ul { font-size: 9pt; }
 }
