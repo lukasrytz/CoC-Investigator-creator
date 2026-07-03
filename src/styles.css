@@ -434,7 +434,10 @@ tr.locked td { color: var(--ink-faint); font-style: italic; }
 
 .sheet {
   margin: 0 auto;
-  max-width: 210mm;
+  /* Fixed A4 layout width; CharacterSheet scales it down to fit narrow
+     viewports as a whole (PDF-preview style) instead of reflowing. */
+  width: 210mm;
+  transform-origin: top left;
   color: #241c11;
 }
 
@@ -646,7 +649,11 @@ table.sheet-weapons td + td { border-left: 1px dotted #c3b288; }
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  .sheet { max-width: none; }
+  .sheet {
+    width: auto;
+    transform: none !important;
+  }
+  .sheet-viewport { height: auto !important; }
   .sheet-page {
     width: 210mm;
     min-height: 296mm;

@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import type { Investigator } from '../../rules/types'
 import { CHARACTERISTIC_NAMES } from '../../rules/types'
 import { SKILLS, skillBase } from '../../rules/skills'
@@ -77,8 +78,35 @@ export default function CharacterSheet({ inv }: { inv: Investigator }) {
     )
     .sort((a, b) => a.name.localeCompare(b.name))
 
+  // The sheet is laid out at fixed A4 width; on narrow screens (phones) it is
+  // scaled down as a whole, like a PDF preview, instead of reflowing. Print is
+  // unaffected (transform reset in the print stylesheet).
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const sheetRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current
+    const sheet = sheetRef.current
+    if (!viewport || !sheet) return
+    const update = () => {
+      const scale = Math.min(1, viewport.clientWidth / sheet.offsetWidth)
+      if (scale < 1) {
+        sheet.style.transform = `scale(${scale})`
+        viewport.style.height = `${sheet.offsetHeight * scale}px`
+      } else {
+        sheet.style.transform = ''
+        viewport.style.height = ''
+      }
+    }
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(viewport)
+    observer.observe(sheet)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <div className="sheet" id="character-sheet">
+    <div className="sheet-viewport" ref={viewportRef}>
+    <div className="sheet" id="character-sheet" ref={sheetRef}>
       <PageFrame>
         <CoffeeRing className="stain stain-ring-1" />
         <div className="sheet-header">
@@ -233,6 +261,7 @@ export default function CharacterSheet({ inv }: { inv: Investigator }) {
 
         <TentacleFlourish className="sheet-tentacles" />
       </PageFrame>
+    </div>
     </div>
   )
 }
