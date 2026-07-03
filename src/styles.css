@@ -279,6 +279,39 @@ button.small:hover { border-color: var(--red-ink); color: var(--red-ink); }
 .pool strong { font-family: var(--type); font-size: 1.1rem; }
 .pool.over strong { color: var(--red-ink); }
 
+/* Gear catalog (equipment step) */
+.gear-catalog details {
+  border-top: 1px solid var(--line);
+  padding: 0.25rem 0;
+}
+.gear-catalog details:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.gear-catalog summary {
+  cursor: pointer;
+  font-family: var(--type);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  padding: 0.3rem 0;
+  user-select: none;
+}
+.gear-catalog summary:hover {
+  color: var(--ink);
+}
+.gear-catalog .gear-count {
+  color: var(--ink-faint);
+  letter-spacing: 0;
+}
+.gear-catalog .gear-suggestions {
+  margin: 0.2rem 0 0.55rem;
+}
+.gear-price {
+  color: var(--ink-faint);
+  font-size: 0.9em;
+}
+
 /* Era/rarity tags, e.g. [Modern] */
 .tag {
   font-family: var(--type);

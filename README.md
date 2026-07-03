@@ -34,6 +34,8 @@ or build the app yourself.
 - **Backstory prompts**: dice buttons for ideology, significant people, locations, possessions and
   traits, plus key-connection selection.
 - **1920s finances** computed from Credit Rating (standard of living, spending level, cash, assets).
+- **Equipment catalog** in the style of the Investigator Handbook's price guide: ~75 items with
+  1920s prices, grouped by category (investigation tools, firearms, clothing, …) on the gear step.
 - **Output**: a print-friendly character sheet (use the browser's print-to-PDF), or fill your own
   downloaded copy of the official fillable PDF sheet directly in the browser.
 - **1920s case-file design**: manila folder chrome, file-tab navigation with per-step completion

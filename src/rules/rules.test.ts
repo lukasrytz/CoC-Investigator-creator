@@ -32,6 +32,7 @@ import {
   skillTotal,
 } from './allocation'
 import { finances1920s } from './finance'
+import { GEAR_CATALOG_1920S, gearLabel } from './gear'
 import type { Characteristics, Investigator } from './types'
 import { emptyInvestigator } from './types'
 
@@ -337,5 +338,35 @@ describe('occupation lookup', () => {
   it('finds occupations by id', () => {
     expect(occupationById('journalist').name).toBe('Journalist')
     expect(() => occupationById('astronaut')).toThrow()
+  })
+})
+
+describe('gear catalog', () => {
+  it('has non-empty categories with unique item names', () => {
+    const names = new Set<string>()
+    for (const cat of GEAR_CATALOG_1920S) {
+      expect(cat.items.length).toBeGreaterThan(0)
+      for (const item of cat.items) {
+        expect(names.has(item.name)).toBe(false)
+        names.add(item.name)
+      }
+    }
+  })
+
+  it('sorts items alphabetically within each category', () => {
+    for (const cat of GEAR_CATALOG_1920S) {
+      const sorted = [...cat.items].sort((a, b) => a.name.localeCompare(b.name))
+      expect(cat.items.map((i) => i.name)).toEqual(sorted.map((i) => i.name))
+    }
+  })
+
+  it('formats prices consistently and labels items with them', () => {
+    for (const cat of GEAR_CATALOG_1920S) {
+      for (const item of cat.items) {
+        if (item.price) expect(item.price).toMatch(/^\$\d+\.\d{2}$/)
+      }
+    }
+    expect(gearLabel({ name: 'Flashlight', price: '$2.00' })).toBe('Flashlight ($2.00)')
+    expect(gearLabel({ name: 'Newspaper clippings file' })).toBe('Newspaper clippings file')
   })
 })

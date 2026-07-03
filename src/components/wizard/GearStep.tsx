@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useCreatorStore } from '../../state/store'
 import { validateAllocation } from '../../rules/allocation'
 import { finances1920s, formatDollars } from '../../rules/finance'
-import { GEAR_SUGGESTIONS_1920S } from '../../rules/backstoryTables'
+import { GEAR_CATALOG_1920S, gearLabel } from '../../rules/gear'
 
 export default function GearStep() {
   const inv = useCreatorStore((s) => s.investigator)
@@ -66,12 +66,25 @@ export default function GearStep() {
             </li>
           ))}
         </ul>
-        <div className="gear-suggestions">
-          {GEAR_SUGGESTIONS_1920S.filter((s) => !inv.gear.includes(s)).map((s) => (
-            <button key={s} className="small" onClick={() => add(s)}>
-              + {s}
-            </button>
-          ))}
+        <div className="gear-catalog">
+          {GEAR_CATALOG_1920S.map((cat, i) => {
+            const remaining = cat.items.filter((item) => !inv.gear.includes(gearLabel(item)))
+            return (
+              <details key={cat.name} open={i === 0}>
+                <summary>
+                  {cat.name} <span className="gear-count">({remaining.length})</span>
+                </summary>
+                <div className="gear-suggestions">
+                  {remaining.map((item) => (
+                    <button key={item.name} className="small" onClick={() => add(gearLabel(item))}>
+                      + {item.name}
+                      {item.price && <span className="gear-price"> {item.price}</span>}
+                    </button>
+                  ))}
+                </div>
+              </details>
+            )
+          })}
         </div>
         <label className="field" style={{ marginTop: '0.8rem' }}>
           <span>Notes</span>

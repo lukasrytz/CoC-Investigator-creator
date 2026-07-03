@@ -73,23 +73,3 @@ export function rollBackstory(table: BackstoryTableKey, rng: Rng = defaultRng): 
   const entries = BACKSTORY_TABLES[table]
   return entries[rollDie(entries.length, rng) - 1]
 }
-
-/** A few era-appropriate gear suggestions for the equipment step. */
-export const GEAR_SUGGESTIONS_1920S: readonly string[] = [
-  'Flashlight',
-  'Matches and candles',
-  'Notebook and pencil',
-  'Pocket watch',
-  'Camera (Kodak Brownie)',
-  'Magnifying glass',
-  'First aid kit',
-  'Rope (50 ft)',
-  'Crowbar',
-  'Pocket knife',
-  'Lockpicks',
-  'Binoculars',
-  'Map of the local area',
-  'Hip flask',
-  'Revolver (.38)',
-  'Newspaper clippings file',
-]
