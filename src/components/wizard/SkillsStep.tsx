@@ -5,6 +5,7 @@ import { occupationById } from '../../rules/occupations'
 import { validateAllocation, SKILL_CAP } from '../../rules/allocation'
 import { halfValue, fifthValue } from '../../rules/characteristics'
 import type { SkillAllocation, SkillDef } from '../../rules/types'
+import Tags from '../Tags'
 
 type Pool = 'occupationPoints' | 'personalPoints'
 
@@ -129,7 +130,7 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
               return (
                 <tr key={`${def.id}|${spec ?? ''}`} className={`${isOcc && isOccupationStep ? 'occ-skill' : ''} ${locked ? 'locked' : ''}`}>
                   <td>
-                    {name}
+                    {name} <Tags tags={def.tags} />
                     {def.id === 'credit-rating' && occupation && isOccupationStep && (
                       <span className="cr-note"> — required {occupation.creditRating.min}–{occupation.creditRating.max}</span>
                     )}

@@ -4,6 +4,7 @@ import { OCCUPATIONS } from '../../rules/occupations'
 import { occupationPoints, formulaLabel, personalInterestPoints } from '../../rules/allocation'
 import { skillById } from '../../rules/skills'
 import type { OccupationSkillSlot } from '../../rules/types'
+import Tags from '../Tags'
 
 function slotLabel(slot: OccupationSkillSlot): string {
   if (slot.kind === 'fixed') {
@@ -39,7 +40,7 @@ export default function OccupationStep() {
                 className={o.id === inv.occupationId ? 'selected' : ''}
                 onClick={() => setOccupation(o.id)}
               >
-                {o.name}
+                {o.name} <Tags tags={o.tags} />
               </button>
             ))}
           </div>
@@ -47,7 +48,9 @@ export default function OccupationStep() {
         <div className="occ-detail">
           {selected ? (
             <>
-              <h3>{selected.name}</h3>
+              <h3>
+                {selected.name} <Tags tags={selected.tags} />
+              </h3>
               <p>{selected.description}</p>
               <p className="meta">
                 <strong>Skill points:</strong> {formulaLabel(selected.points)}

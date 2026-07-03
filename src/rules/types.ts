@@ -22,6 +22,9 @@ export interface DerivedStats {
   move: number
 }
 
+/** Era/rarity tags as used in the rulebooks, e.g. "Computer Use [Modern]". */
+export type EntryTag = 'modern' | 'classic' | 'uncommon'
+
 export type SkillCategory =
   | 'combat'
   | 'communication'
@@ -42,6 +45,7 @@ export interface SkillDef {
   specializable?: boolean
   /** Cannot receive points at creation (Cthulhu Mythos). */
   lockedAtCreation?: boolean
+  tags?: readonly EntryTag[]
 }
 
 /** One of the four interpersonal skills, referenced by occupation choice slots. */
@@ -68,6 +72,7 @@ export interface Occupation {
   creditRating: { min: number; max: number }
   slots: readonly OccupationSkillSlot[]
   suggestedContacts: string
+  tags?: readonly EntryTag[]
 }
 
 /** A player-defined skill outside the core list (Keeper's approval), e.g. a hobby. */

@@ -43,7 +43,13 @@ export default function CharacterSheet({ inv }: { inv: Investigator }) {
   const fin = finances1920s(creditRating)
 
   // One row per skill (specializable skills appear once per specialization).
+  // Modern-era skills stay off the 1920s sheet unless points were put in them.
   const skillRows = [...SKILLS]
+    .filter(
+      (def) =>
+        !def.tags?.includes('modern') ||
+        inv.skills.some((a) => a.skillId === def.id && a.occupationPoints + a.personalPoints > 0),
+    )
     .sort((a, b) => a.name.localeCompare(b.name))
     .flatMap((def) => {
       const base = skillBase(def, chars)

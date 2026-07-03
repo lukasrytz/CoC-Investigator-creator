@@ -226,6 +226,7 @@ export const OCCUPATIONS: readonly Occupation[] = [
     creditRating: { min: 5, max: 30 },
     slots: [fixed('drive-auto'), fixed('fighting-brawl'), fixed('firearms-handgun'), interpersonal(1), fixed('listen'), fixed('psychology'), fixed('spot-hidden'), fixed('stealth')],
     suggestedContacts: 'Organized crime, street gangs, speakeasies, corrupt cops.',
+    tags: ['classic'],
   },
   {
     id: 'bounty-hunter',
@@ -282,6 +283,16 @@ export const OCCUPATIONS: readonly Occupation[] = [
     suggestedContacts: 'Church hierarchy, local congregations, community leaders.',
   },
   {
+    id: 'computer-programmer',
+    name: 'Computer Programmer / Technician',
+    description: 'Builder and fixer of software and systems.',
+    points: { kind: 'edu4' },
+    creditRating: { min: 10, max: 70 },
+    slots: [fixed('computer-use'), fixed('electrical-repair'), fixed('electronics'), fixed('library-use'), fixed('science', 'Mathematics'), fixed('spot-hidden'), any(2)],
+    suggestedContacts: 'IT industry contacts, online communities, software vendors.',
+    tags: ['modern'],
+  },
+  {
     id: 'confidence-trickster',
     name: 'Confidence Trickster',
     description: 'Silver-tongued architect of swindles great and small.',
@@ -307,6 +318,7 @@ export const OCCUPATIONS: readonly Occupation[] = [
       fixed('track'),
     ],
     suggestedContacts: 'Ranchers, rodeo circuit, cattle buyers, rural lawmen.',
+    tags: ['classic'],
   },
   {
     id: 'craftsperson',
@@ -534,6 +546,17 @@ export const OCCUPATIONS: readonly Occupation[] = [
     creditRating: { min: 10, max: 80 },
     slots: [fixed('art-craft'), interpersonal(2), fixed('drive-auto'), oneOf('Fighting (Brawl) or Firearms (Handgun)', 'fighting-brawl', 'firearms-handgun'), fixed('listen'), fixed('stealth'), any(1)],
     suggestedContacts: 'Gangsters, nightclub staff, police on the take.',
+    tags: ['classic'],
+  },
+  {
+    id: 'hacker',
+    name: 'Hacker',
+    description: 'Explorer of networks and systems, invited or otherwise.',
+    points: { kind: 'edu4' },
+    creditRating: { min: 10, max: 70 },
+    slots: [fixed('computer-use'), fixed('electrical-repair'), fixed('electronics'), fixed('library-use'), fixed('spot-hidden'), interpersonal(1), any(2)],
+    suggestedContacts: 'Online forums, phone phreaks, IT insiders, information brokers.',
+    tags: ['modern'],
   },
   {
     id: 'hobo',
