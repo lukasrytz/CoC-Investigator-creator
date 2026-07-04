@@ -9,6 +9,9 @@ export default function BasicsStep() {
   const setAge = useCreatorStore((s) => s.setAge)
   const loadSaved = useCreatorStore((s) => s.loadSaved)
   const [importError, setImportError] = useState('')
+  // While the age field is being edited it holds the raw text, so that
+  // intermediate values ("4" on the way to "42") aren't clamped mid-keystroke.
+  const [ageDraft, setAgeDraft] = useState<string | null>(null)
 
   const handleImport = async (file: File | undefined) => {
     if (!file) return
@@ -80,8 +83,19 @@ export default function BasicsStep() {
             type="number"
             min={MIN_AGE}
             max={MAX_AGE}
-            value={inv.age}
-            onChange={(e) => setAge(Number(e.target.value))}
+            value={ageDraft ?? inv.age}
+            onChange={(e) => {
+              const raw = e.target.value
+              setAgeDraft(raw)
+              const n = Number(raw)
+              if (Number.isInteger(n) && n >= MIN_AGE && n <= MAX_AGE) setAge(n)
+            }}
+            onBlur={() => {
+              if (ageDraft !== null && ageDraft !== '' && !Number.isNaN(Number(ageDraft))) {
+                setAge(Number(ageDraft)) // store clamps out-of-range values
+              }
+              setAgeDraft(null)
+            }}
           />
         </label>
       </div>
