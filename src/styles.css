@@ -396,6 +396,29 @@ table.skills td.num, table.skills th.num { text-align: right; width: 3.2rem; }
 table.skills td.num { font-family: var(--type); }
 table.skills input[type='number'] { width: 4rem; padding: 0.1rem 0.2rem; text-align: right; }
 tr.occ-skill td:first-child { color: var(--red-ink); font-weight: 600; }
+
+/* Phones: compact shell and skills table (skill · active pool · total). */
+@media (max-width: 700px) {
+  #root { margin: 2.2rem 0.35rem 2rem; padding: 1rem 0.7rem 1.7rem; }
+  .card { padding: 0.85rem 0.75rem; }
+}
+@media (max-width: 620px) {
+  table.skills th:nth-child(2),
+  table.skills td:nth-child(2),
+  table.skills th:nth-child(6),
+  table.skills td:nth-child(6) {
+    display: none;
+  }
+  table.skills.occ-input th:nth-child(4),
+  table.skills.occ-input td:nth-child(4),
+  table.skills.pers-input th:nth-child(3),
+  table.skills.pers-input td:nth-child(3) {
+    display: none;
+  }
+  table.skills { font-size: 0.84rem; }
+  table.skills th, table.skills td { padding: 0.22rem 0.25rem; }
+  table.skills input[type='number'] { width: 3.4rem; }
+}
 tr.locked td { color: var(--ink-faint); font-style: italic; }
 .spec-add { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 .spec-add input[type='text'] { width: 11rem; }

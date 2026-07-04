@@ -107,7 +107,7 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
           </p>
         )}
 
-        <table className="skills">
+        <table className={`skills ${isOccupationStep ? 'occ-input' : 'pers-input'}`}>
           <thead>
             <tr>
               <th>Skill</th>
