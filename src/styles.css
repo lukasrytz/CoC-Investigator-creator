@@ -396,6 +396,34 @@ table.skills td.num, table.skills th.num { text-align: right; width: 3.2rem; }
 table.skills td.num { font-family: var(--type); }
 table.skills input[type='number'] { width: 4rem; padding: 0.1rem 0.2rem; text-align: right; }
 tr.occ-skill td:first-child { color: var(--red-ink); font-weight: 600; }
+tr.occ-option td:first-child { color: var(--red-ink); opacity: 0.75; }
+tr.skill-group td {
+  font-family: var(--serif);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+  border-bottom: 2px solid var(--ink);
+  padding-top: 0.9rem;
+}
+
+/* Occupation slot checklist */
+.slot-checklist {
+  list-style: none;
+  margin: 0.6rem 0 0.2rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px dashed var(--ink-faint);
+  background: rgba(255, 253, 245, 0.55);
+  font-family: var(--type);
+  font-size: 0.82rem;
+  columns: 2;
+  column-gap: 1.5rem;
+}
+@media (max-width: 700px) { .slot-checklist { columns: 1; } }
+.slot-checklist li { break-inside: avoid; padding: 0.12rem 0; color: var(--ink-faint); }
+.slot-checklist li.filled { color: var(--green-ink); }
+.slot-checklist li .mark { font-size: 0.95em; }
+.slot-checklist li .filled-by { color: var(--ink-faint); }
 
 /* Phones: compact shell and skills table (skill · active pool · total). */
 @media (max-width: 700px) {

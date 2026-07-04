@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useCreatorStore } from '../../state/store'
 import { SKILLS, skillBase } from '../../rules/skills'
 import { occupationById } from '../../rules/occupations'
-import { validateAllocation, SKILL_CAP } from '../../rules/allocation'
+import { validateAllocation, occupationSlotStatus, SKILL_CAP } from '../../rules/allocation'
 import { halfValue, fifthValue } from '../../rules/characteristics'
 import type { SkillAllocation, SkillDef } from '../../rules/types'
 import Tags from '../Tags'
@@ -40,13 +40,27 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
     )
   }
 
-  const occupationSkillIds = new Set<string>()
+  // Fixed slots are mandatory; choice-group candidates are options. Spec'd
+  // fixed slots (e.g. Art/Craft (Farming)) match only the row with that spec.
+  const fixedIds = new Set<string>()
+  const fixedSpecs = new Set<string>()
+  const optionLabels = new Map<string, string>()
   if (occupation) {
     for (const slot of occupation.slots) {
-      if (slot.kind === 'fixed') occupationSkillIds.add(slot.skillId)
-      if (slot.kind === 'choice') for (const id of slot.from) occupationSkillIds.add(id)
+      if (slot.kind === 'fixed') {
+        if (slot.spec) fixedSpecs.add(`${slot.skillId}|${slot.spec}`)
+        else fixedIds.add(slot.skillId)
+      }
+      if (slot.kind === 'choice') {
+        for (const id of slot.from) if (!optionLabels.has(id)) optionLabels.set(id, slot.label)
+      }
     }
   }
+  const isFixedRow = (def: SkillDef, spec?: string) =>
+    fixedIds.has(def.id) || (spec !== undefined && fixedSpecs.has(`${def.id}|${spec}`))
+  const slotStatuses =
+    isOccupationStep && occupation ? occupationSlotStatus(occupation, inv.skills, inv.customSkills ?? []).slots : []
+  const freePicks = slotStatuses.find((s) => s.kind === 'any')
 
   const findAlloc = (skillId: string, spec?: string) =>
     inv.skills.find((a) => a.skillId === skillId && (a.spec ?? '') === (spec ?? ''))
@@ -69,67 +83,27 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
     })
   }
 
+  // Occupation step: group the table into occupation skills (Credit Rating,
+  // mandatory fixed slots, choice candidates) and everything else.
+  const inOccGroup = (r: Row) => r.def.id === 'credit-rating' || isFixedRow(r.def, r.spec) || optionLabels.has(r.def.id)
+  const bandOf = (r: Row) => (r.def.id === 'credit-rating' ? 0 : isFixedRow(r.def, r.spec) ? 1 : 2)
+  const occRows = rows.filter(inOccGroup).sort((a, b) => bandOf(a) - bandOf(b))
+  const otherRows = rows.filter((r) => !inOccGroup(r))
+
   const chars = inv.characteristics
 
-  return (
-    <>
-      <div className="card">
-        <h2>{isOccupationStep ? 'Occupation skill points' : 'Personal interest points'}</h2>
-        <div className="pool-strip">
-          {isOccupationStep ? (
-            <>
-              <div className={`pool ${status.occupationRemaining < 0 ? 'over' : ''}`}>
-                Occupation points: <strong>{status.occupationRemaining}</strong> / {status.occupationPool} left
-              </div>
-              <div className="pool">
-                Credit Rating: <strong>{status.creditRating}</strong>{' '}
-                {occupation && (
-                  <span className="cr-note">
-                    (required: {occupation.creditRating.min}–{occupation.creditRating.max})
-                  </span>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className={`pool ${status.personalRemaining < 0 ? 'over' : ''}`}>
-              Personal interest points (INT × 2): <strong>{status.personalRemaining}</strong> / {status.personalPool} left
-            </div>
-          )}
-        </div>
-        {isOccupationStep ? (
-          <p className="occ-detail meta">
-            Spend occupation points on the skills marked in <span style={{ color: 'var(--accent)', fontWeight: 600 }}>red</span>{' '}
-            (your occupation's skills), your free picks, and Credit Rating. Maximum {SKILL_CAP} in any skill.
-          </p>
-        ) : (
-          <p className="occ-detail meta">
-            Spend INT × 2 points on any skills except Cthulhu Mythos. Maximum {SKILL_CAP} in any skill.
-          </p>
-        )}
-
-        <table className={`skills ${isOccupationStep ? 'occ-input' : 'pers-input'}`}>
-          <thead>
-            <tr>
-              <th>Skill</th>
-              <th className="num">Base</th>
-              <th className="num">Occ.</th>
-              <th className="num">Pers.</th>
-              <th className="num">Total</th>
-              <th className="num">½ / ⅕</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(({ def, spec, alloc, customId }) => {
+  const renderRow = ({ def, spec, alloc, customId }: Row) => {
               const base = skillBase(def, chars)
               const occPts = alloc?.occupationPoints ?? 0
               const persPts = alloc?.personalPoints ?? 0
               const total = base + occPts + persPts
               const locked = def.lockedAtCreation
-              const isOcc = occupationSkillIds.has(def.id) || def.id === 'credit-rating'
+              const fixedRow = isOccupationStep && (isFixedRow(def, spec) || def.id === 'credit-rating')
+              const optionRow = isOccupationStep && !fixedRow && optionLabels.has(def.id)
               const name = spec ? `${def.name} (${spec})` : def.name
               return (
-                <tr key={`${def.id}|${spec ?? ''}`} className={`${isOcc && isOccupationStep ? 'occ-skill' : ''} ${locked ? 'locked' : ''}`}>
-                  <td>
+                <tr key={`${def.id}|${spec ?? ''}`} className={`${fixedRow ? 'occ-skill' : ''} ${optionRow ? 'occ-option' : ''} ${locked ? 'locked' : ''}`}>
+                  <td title={optionRow ? `Counts toward: ${optionLabels.get(def.id)}` : undefined}>
                     {name} <Tags tags={def.tags} />
                     {def.id === 'credit-rating' && occupation && isOccupationStep && (
                       <span className="cr-note"> — required {occupation.creditRating.min}–{occupation.creditRating.max}</span>
@@ -187,7 +161,92 @@ export default function SkillsStep({ pool }: { pool: Pool }) {
                   </td>
                 </tr>
               )
-            })}
+  }
+
+  return (
+    <>
+      <div className="card">
+        <h2>{isOccupationStep ? 'Occupation skill points' : 'Personal interest points'}</h2>
+        <div className="pool-strip">
+          {isOccupationStep ? (
+            <>
+              <div className={`pool ${status.occupationRemaining < 0 ? 'over' : ''}`}>
+                Occupation points: <strong>{status.occupationRemaining}</strong> / {status.occupationPool} left
+              </div>
+              <div className="pool">
+                Credit Rating: <strong>{status.creditRating}</strong>{' '}
+                {occupation && (
+                  <span className="cr-note">
+                    (required: {occupation.creditRating.min}–{occupation.creditRating.max})
+                  </span>
+                )}
+              </div>
+              {freePicks && (
+                <div className={`pool ${freePicks.used > freePicks.count ? 'over' : ''}`}>
+                  Free picks: <strong>{freePicks.count - freePicks.used}</strong> / {freePicks.count} left
+                </div>
+              )}
+            </>
+          ) : (
+            <div className={`pool ${status.personalRemaining < 0 ? 'over' : ''}`}>
+              Personal interest points (INT × 2): <strong>{status.personalRemaining}</strong> / {status.personalPool} left
+            </div>
+          )}
+        </div>
+        {isOccupationStep ? (
+          <>
+            <p className="occ-detail meta">
+              Spend occupation points on your occupation's skills below, Credit Rating, and up to{' '}
+              {freePicks ? freePicks.count : 0} skills of your choice. Maximum {SKILL_CAP} in any skill.
+            </p>
+            <ul className="slot-checklist">
+              {slotStatuses.map((s, i) => (
+                <li key={i} className={s.used >= s.count ? 'filled' : ''}>
+                  <span className="mark">{s.used >= s.count ? '☑' : '☐'}</span>{' '}
+                  {s.kind === 'fixed' ? (
+                    s.label
+                  ) : (
+                    <>
+                      {s.label} — {s.used}/{s.count}
+                      {s.filledBy.length > 0 && <span className="filled-by"> ({s.filledBy.join(', ')})</span>}
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="occ-detail meta">
+            Spend INT × 2 points on any skills except Cthulhu Mythos. Maximum {SKILL_CAP} in any skill.
+          </p>
+        )}
+
+        <table className={`skills ${isOccupationStep ? 'occ-input' : 'pers-input'}`}>
+          <thead>
+            <tr>
+              <th>Skill</th>
+              <th className="num">Base</th>
+              <th className="num">Occ.</th>
+              <th className="num">Pers.</th>
+              <th className="num">Total</th>
+              <th className="num">½ / ⅕</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(isOccupationStep ? [] : rows).map(renderRow)}
+            {isOccupationStep && (
+              <>
+                <tr className="skill-group">
+                  <td colSpan={6}>Occupation skills</td>
+                </tr>
+                {occRows.map(renderRow)}
+                <tr className="skill-group">
+                  <td colSpan={6}>Other skills — free picks</td>
+                </tr>
+                {otherRows.map(renderRow)}
+              </>
+            )}
+
           </tbody>
         </table>
 

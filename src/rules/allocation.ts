@@ -39,42 +39,102 @@ export interface AllocationStatus {
   errors: string[]
 }
 
+/** Live fulfillment of one occupation skill slot, for the checklist UI. */
+export interface SlotStatus {
+  kind: 'fixed' | 'choice' | 'any'
+  label: string
+  count: number
+  used: number
+  /** Names of the skills that filled this slot. */
+  filledBy: string[]
+}
+
 /**
- * Check whether the skills that received occupation points fit the
- * occupation's slots: fixed skills match directly, choice slots have a
- * capacity of `count` from their group, and 'any' slots absorb the rest.
+ * Match the skills that received occupation points against the occupation's
+ * slots: fixed skills match directly, choice slots have a capacity of `count`
+ * from their group, and 'any' slots (merged into one "free picks" entry)
+ * absorb the rest. Returns per-slot fulfillment plus the names of allocations
+ * that fit no slot.
  */
+export function occupationSlotStatus(
+  occupation: Occupation,
+  allocations: readonly SkillAllocation[],
+  customSkills: readonly CustomSkill[] = [],
+): { slots: SlotStatus[]; unmatched: string[] } {
+  const skillName = (skillId: string, spec?: string) => {
+    const def = resolveSkill(customSkills, skillId)
+    return spec ? `${def.name} (${spec})` : def.name
+  }
+
+  const fixedIds = new Set<string>()
+  const fixedSlots: { skillId: string; spec?: string; status: SlotStatus }[] = []
+  const choiceSlots: { from: readonly string[]; status: SlotStatus }[] = []
+  let anyCapacity = 0
+  for (const slot of occupation.slots) {
+    if (slot.kind === 'fixed') {
+      fixedIds.add(slot.skillId)
+      fixedSlots.push({
+        skillId: slot.skillId,
+        spec: slot.spec,
+        status: { kind: 'fixed', label: skillName(slot.skillId, slot.spec), count: 1, used: 0, filledBy: [] },
+      })
+    } else if (slot.kind === 'choice') {
+      choiceSlots.push({
+        from: slot.from,
+        status: { kind: 'choice', label: slot.label, count: slot.count, used: 0, filledBy: [] },
+      })
+    } else {
+      anyCapacity += slot.count
+    }
+  }
+  const anyStatus: SlotStatus | null =
+    anyCapacity > 0 ? { kind: 'any', label: 'Free picks', count: anyCapacity, used: 0, filledBy: [] } : null
+
+  const unmatched: string[] = []
+  for (const alloc of allocations) {
+    if (alloc.occupationPoints <= 0 || alloc.skillId === 'credit-rating') continue
+    if (fixedIds.has(alloc.skillId)) {
+      // Fixed skills never spill into choice/any capacity; tick the precise
+      // slot (matching spec, if the slot demands one) when there is one.
+      const slot = fixedSlots.find(
+        (f) => f.skillId === alloc.skillId && f.status.used === 0 && (!f.spec || f.spec === alloc.spec),
+      )
+      if (slot) {
+        slot.status.used = 1
+        slot.status.filledBy.push(skillName(alloc.skillId, alloc.spec))
+      }
+      continue
+    }
+    const choice = choiceSlots.find((s) => s.status.used < s.status.count && s.from.includes(alloc.skillId))
+    if (choice) {
+      choice.status.used++
+      choice.status.filledBy.push(skillName(alloc.skillId, alloc.spec))
+      continue
+    }
+    if (anyStatus && anyStatus.used < anyStatus.count) {
+      anyStatus.used++
+      anyStatus.filledBy.push(skillName(alloc.skillId, alloc.spec))
+      continue
+    }
+    unmatched.push(resolveSkill(customSkills, alloc.skillId).name)
+  }
+
+  const slots = [
+    ...fixedSlots.map((f) => f.status),
+    ...choiceSlots.map((c) => c.status),
+    ...(anyStatus ? [anyStatus] : []),
+  ]
+  return { slots, unmatched }
+}
+
 function matchSlots(
   occupation: Occupation,
   allocations: SkillAllocation[],
   customSkills: readonly CustomSkill[],
 ): string[] {
-  const errors: string[] = []
-  const fixedIds = new Set(
-    occupation.slots.flatMap((s) => (s.kind === 'fixed' ? [s.skillId] : [])),
+  return occupationSlotStatus(occupation, allocations, customSkills).unmatched.map(
+    (name) => `${name} is not one of the occupation's skills (and all free picks are used)`,
   )
-  const choiceSlots = occupation.slots.flatMap((s) =>
-    s.kind === 'choice' ? [{ ...s, used: 0 }] : [],
-  )
-  let anyCapacity = occupation.slots.reduce((n, s) => (s.kind === 'any' ? n + s.count : n), 0)
-
-  for (const alloc of allocations) {
-    if (alloc.occupationPoints <= 0 || alloc.skillId === 'credit-rating') continue
-    if (fixedIds.has(alloc.skillId)) continue
-    const choice = choiceSlots.find((s) => s.used < s.count && s.from.includes(alloc.skillId))
-    if (choice) {
-      choice.used++
-      continue
-    }
-    if (anyCapacity > 0) {
-      anyCapacity--
-      continue
-    }
-    errors.push(
-      `${resolveSkill(customSkills, alloc.skillId).name} is not one of the occupation's skills (and all free picks are used)`,
-    )
-  }
-  return errors
 }
 
 export function validateAllocation(inv: Investigator): AllocationStatus {

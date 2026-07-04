@@ -28,6 +28,7 @@ import { OCCUPATIONS, occupationById } from './occupations'
 import {
   occupationPoints,
   personalInterestPoints,
+  occupationSlotStatus,
   validateAllocation,
   skillTotal,
 } from './allocation'
@@ -461,5 +462,56 @@ describe('character file (.md)', () => {
     expect(() => parseCharacterFile('# Just some markdown')).toThrow(/No investigator data/)
     const md = characterFileMarkdown(sample())
     expect(() => parseCharacterFile(md.replace('"investigator"', '"investigator'))).toThrow(/not valid JSON/)
+  })
+})
+
+describe('occupation slot status', () => {
+  const farmer = occupationById('farmer')
+  const alloc = (skillId: string, pts: number, spec?: string) => ({
+    skillId,
+    spec,
+    occupationPoints: pts,
+    personalPoints: 0,
+  })
+
+  it('starts unfilled', () => {
+    const { slots, unmatched } = occupationSlotStatus(farmer, [])
+    expect(unmatched).toEqual([])
+    expect(slots.every((s) => s.used === 0)).toBe(true)
+    const free = slots.find((s) => s.kind === 'any')!
+    expect(free.count).toBe(1)
+    const fixedLabels = slots.filter((s) => s.kind === 'fixed').map((s) => s.label)
+    expect(fixedLabels).toContain('Art/Craft (Farming)')
+  })
+
+  it('ticks fixed, choice and free-pick slots as points are allocated', () => {
+    const { slots, unmatched } = occupationSlotStatus(farmer, [
+      alloc('art-craft', 30, 'Farming'),
+      alloc('charm', 20),
+      alloc('jump', 10),
+    ])
+    expect(unmatched).toEqual([])
+    const artCraft = slots.find((s) => s.label === 'Art/Craft (Farming)')!
+    expect(artCraft.used).toBe(1)
+    const interpersonal = slots.find((s) => s.kind === 'choice')!
+    expect(interpersonal.used).toBe(1)
+    expect(interpersonal.filledBy).toEqual(['Charm'])
+    const free = slots.find((s) => s.kind === 'any')!
+    expect(free.used).toBe(1)
+    expect(free.filledBy).toEqual(['Jump'])
+  })
+
+  it('reports allocations that fit no slot once free picks are used', () => {
+    const { unmatched } = occupationSlotStatus(farmer, [
+      alloc('jump', 10),
+      alloc('swim', 10),
+    ])
+    expect(unmatched).toEqual(['Swim'])
+  })
+
+  it('a wrong specialization does not tick a spec-locked fixed slot', () => {
+    const { slots } = occupationSlotStatus(farmer, [alloc('art-craft', 30, 'Painting')])
+    const artCraft = slots.find((s) => s.label === 'Art/Craft (Farming)')!
+    expect(artCraft.used).toBe(0)
   })
 })
